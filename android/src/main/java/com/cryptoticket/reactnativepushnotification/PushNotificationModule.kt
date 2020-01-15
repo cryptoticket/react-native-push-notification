@@ -68,6 +68,11 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
         }
     }
 
+    /**
+     * Returns device FCM token in React Native promise
+     *
+     * @param promise React Native promise
+     */
     @ReactMethod
     fun getDeviceToken(promise: Promise) {
         FirebaseInstanceId.getInstance().instanceId

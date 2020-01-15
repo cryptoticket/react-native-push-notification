@@ -21,6 +21,17 @@
         </intent-filter>
       </activity>
       <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
+
+      <!-- start notification settings -->
+      <service
+          android:name="com.cryptoticket.reactnativepushnotification.CustomFirebaseMessagingService"
+          android:exported="false">
+          <intent-filter>
+              <action android:name="com.google.firebase.MESSAGING_EVENT" />
+          </intent-filter>
+      </service>
+      <!-- end notification settings -->
+
     </application>
 
 </manifest>
