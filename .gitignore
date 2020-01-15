@@ -33,6 +33,7 @@ android/gradle/
 android/gradlew
 android/gradlew.bat
 android/.idea
+android/*.iml
 
 # node.js
 #
