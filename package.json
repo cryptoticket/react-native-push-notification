@@ -1,0 +1,23 @@
+{
+  "name": "@cryptoticket/react-native-push-notification",
+  "version": "1.0.0",
+  "description": "React native package that manages push notifications",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cryptoticket/react-native-push-notification.git"
+  },
+  "keywords": [
+    "react native",
+    "react native push notification"
+  ],
+  "author": "Vladimir Ryzhak <ryzhak.vladimir@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cryptoticket/react-native-push-notification/issues"
+  },
+  "homepage": "https://github.com/cryptoticket/react-native-push-notification#readme"
+}
