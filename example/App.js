@@ -1,53 +1,39 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow
- */
+import React from 'react';
+import { Alert, Button, Text, View } from 'react-native';
 
-import React, {Fragment} from 'react';
-import {
-  Button,
-  SafeAreaView,
-  StyleSheet,
-  ScrollView,
-  Text,
-  StatusBar,
-} from 'react-native';
+import { PushNotificationAndroid } from './PushNotification';
 
-import {
-  Colors,
-} from 'react-native/Libraries/NewAppScreen';
+export default class App extends React.Component {
 
-import {PushNotificationAndroid} from './PushNotification';
-
-const App = () => {
-
-  const onPress = () => {
-    console.log("HERE");
-    PushNotificationAndroid.show("message", 5);
+  /**
+   * Creates a new notification channel
+   */
+  onCreateChannelPress = () => {
+    try {
+      const channelId = "my_channel_id";
+      const channelName = "my_channel_name";
+      const channelDesc = "my_channel_desc";
+      const channelImportance = PushNotificationAndroid.CHANNEL_IMPORTANCE_DEFAULT;
+      PushNotificationAndroid.createChannel(channelId, channelName, channelDesc, channelImportance);
+      Alert.alert("Success", `Channel ${channelName} created`);
+    } catch (err) {
+      Alert.alert("Error", err);
+    }
   };
-
-  return (
-    <Fragment>
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          style={styles.scrollView}>
-            <Text style={{color: 'black', textAlign: 'center'}}>Push notification example</Text>
-            <Button title="Press me" onPress={onPress} />
-        </ScrollView>
-      </SafeAreaView>
-    </Fragment>
-  );
-};
-
-const styles = StyleSheet.create({
-  scrollView: {
-    backgroundColor: Colors.lighter,
+  
+  /**
+   * Renders JSX template
+   * @return JSX template
+   */
+  render() {
+    return (
+      <View>
+        <Text>Examples</Text>
+        
+        <View style={{marginTop: 10}} >
+          <Button title="Create channel" onPress={this.onCreateChannelPress} />
+        </View>
+      </View>
+    );
   }
-});
-
-export default App;
+}

@@ -1,19 +1,68 @@
 package com.cryptoticket.reactnativepushnotification
 
-import android.widget.Toast
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.os.Build
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 
 class PushNotificationModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
+    /**
+     * Returns module that should be used in React Native
+     *
+     * Ex(js):
+     * import {PushNotificationAndroid} from "@cryptoticket/react-native-push-notification"
+     *
+     * @return React Native module name
+     */
     override fun getName(): String {
         return "PushNotificationAndroid"
     }
 
+    /**
+     * Returns constants that can be used in React Native
+     *
+     * Ex(js):
+     * import {PushNotificationAndroid} from "@cryptoticket/react-native-push-notification"
+     * console.log(PushNotificationAndroid.CHANNEL_IMPORTANCE_NONE);
+     *
+     * @return map object with constants
+     */
+    override fun getConstants(): MutableMap<String, Any> {
+        val constants = mutableMapOf<String, Any>()
+        // notification channel importance levels
+        constants.put("CHANNEL_IMPORTANCE_NONE", NotificationManager.IMPORTANCE_NONE)
+        constants.put("CHANNEL_IMPORTANCE_MIN", NotificationManager.IMPORTANCE_MIN)
+        constants.put("CHANNEL_IMPORTANCE_LOW", NotificationManager.IMPORTANCE_LOW)
+        constants.put("CHANNEL_IMPORTANCE_DEFAULT", NotificationManager.IMPORTANCE_DEFAULT)
+        constants.put("CHANNEL_IMPORTANCE_HIGH", NotificationManager.IMPORTANCE_HIGH)
+        constants.put("CHANNEL_IMPORTANCE_MAX", NotificationManager.IMPORTANCE_MAX)
+        return constants
+    }
+
+    /**
+     * Creates notification channel.
+     * Notification channels are required from android 8 (SDK 26).
+     * This methods can be called multiple times, channels are not recreated.
+     *
+     * @param id notification channel id, used on showing push notification
+     * @param name notification channel name, displayed in app push notification settings
+     * @param desc notification channel description
+     * @param importance notification channel importance, the more importance the more chances user will see a notification
+     */
     @ReactMethod
-    fun show(message: String, duration: Int) {
-        Toast.makeText(reactApplicationContext, message, duration).show()
+    fun createChannel(id: String, name: String, desc: String, importance: Int) {
+        // create channel only if API is available in SDK, android >= 8 (SDK >= 26)
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(id, name, importance).apply {
+                description = desc
+            }
+            val notificationManager: NotificationManager = reactApplicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
     }
 
 }
