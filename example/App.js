@@ -20,6 +20,19 @@ export default class App extends React.Component {
       Alert.alert("Error", err);
     }
   };
+
+  /**
+   * Show device FCM token
+   */
+  onGetDeviceTokenPress = async () => {
+    try {
+      const token = await PushNotificationAndroid.getDeviceToken();
+      Alert.alert("Token", token);
+      console.log(token);
+    } catch(err) {
+      Alert.alert("Error", err);
+    }
+  };
   
   /**
    * Renders JSX template
@@ -32,6 +45,10 @@ export default class App extends React.Component {
         
         <View style={{marginTop: 10}} >
           <Button title="Create channel" onPress={this.onCreateChannelPress} />
+        </View>
+
+        <View style={{marginTop: 10}} >
+          <Button title="Get device token" onPress={this.onGetDeviceTokenPress} />
         </View>
       </View>
     );

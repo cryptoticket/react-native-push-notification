@@ -48,3 +48,6 @@ buck-out/
 
 # Editor config
 .vscode
+
+# google services
+example/android/app/google-services.json
