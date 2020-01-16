@@ -4,14 +4,21 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
-import com.facebook.react.bridge.Promise
-import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReactContextBaseJavaModule
-import com.facebook.react.bridge.ReactMethod
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import com.facebook.react.bridge.*
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.iid.FirebaseInstanceId
 
 class PushNotificationModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+
+    /**
+     * Notification templates
+     */
+    object Templates {
+        val COMMON = 0
+        val EVENT = 1
+    }
 
     /**
      * Returns module that should be used in React Native
@@ -43,6 +50,15 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
         constants.put("CHANNEL_IMPORTANCE_DEFAULT", NotificationManager.IMPORTANCE_DEFAULT)
         constants.put("CHANNEL_IMPORTANCE_HIGH", NotificationManager.IMPORTANCE_HIGH)
         constants.put("CHANNEL_IMPORTANCE_MAX", NotificationManager.IMPORTANCE_MAX)
+        // notification priorities (used for compatibility with android <= 7(SDK <= 25))
+        constants.put("PRIORITY_MIN", NotificationCompat.PRIORITY_MIN)
+        constants.put("PRIORITY_LOW", NotificationCompat.PRIORITY_LOW)
+        constants.put("PRIORITY_DEFAULT", NotificationCompat.PRIORITY_DEFAULT)
+        constants.put("PRIORITY_HIGH", NotificationCompat.PRIORITY_HIGH)
+        constants.put("PRIORITY_MAX", NotificationCompat.PRIORITY_MAX)
+        // notification templates
+        constants.put("TEMPLATE_COMMON", Templates.COMMON)
+        constants.put("TEMPLATE_EVENT", Templates.EVENT)
         return constants
     }
 
@@ -83,6 +99,30 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
                 val token = task.result?.token
                 promise.resolve(token)
             })
+    }
+
+    /**
+     * Shows push notification
+     *
+     * @param notificationId notification id, needed in case we would want to modify a notification
+     * @param template template id
+     * @param channelId notification channel id
+     * @param data notification data attributes, for different templates there are different data attributes
+     * @param priority notification priority, used for backward compatibility with android <= 7 (SDK <= 25), android >= 8 uses channels
+     */
+    @ReactMethod
+    fun show(notificationId: Int, template: Int, channelId: String, data: ReadableMap, priority: Int = NotificationCompat.PRIORITY_DEFAULT) {
+        // common push notification
+        if(template == Templates.COMMON) {
+            val builder = NotificationCompat.Builder(reactApplicationContext, channelId)
+                    .setSmallIcon(R.drawable.common_google_signin_btn_icon_dark)
+                    .setContentTitle(data.getString("title"))
+                    .setContentText(data.getString("message"))
+                    .setPriority(priority)
+            NotificationManagerCompat.from(reactApplicationContext).notify(notificationId, builder.build())
+        }
+
+        // title, message, media, url
     }
 
 }

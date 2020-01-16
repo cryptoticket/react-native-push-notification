@@ -33,6 +33,25 @@ export default class App extends React.Component {
       Alert.alert("Error", err);
     }
   };
+
+  /**
+   * Show standard notification
+   */
+  onShowCommonNotificationPress = () => {
+    try {
+      const notificationId = 1;
+      const template = PushNotificationAndroid.TEMPLATE_COMMON;
+      const channelId = 'my_channel_id';
+      const data = {
+        title: "my title",
+        message: "my message"
+      };
+      const priority = PushNotificationAndroid.PRIORITY_DEFAULT;
+      PushNotificationAndroid.show(notificationId, template, channelId, data, priority);
+    } catch(err) {
+      Alert.alert("Error", err);
+    }
+  }
   
   /**
    * Renders JSX template
@@ -49,6 +68,10 @@ export default class App extends React.Component {
 
         <View style={{marginTop: 10}} >
           <Button title="Get device token" onPress={this.onGetDeviceTokenPress} />
+        </View>
+
+        <View style={{marginTop: 10}} >
+          <Button title="Show common notification" onPress={this.onShowCommonNotificationPress} />
         </View>
       </View>
     );
