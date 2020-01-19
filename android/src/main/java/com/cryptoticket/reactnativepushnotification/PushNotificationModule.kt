@@ -119,7 +119,7 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
         // common push notification
         if(template == Templates.COMMON) {
             val builder = NotificationCompat.Builder(reactApplicationContext, channelId)
-                    .setSmallIcon(R.drawable.common_google_signin_btn_icon_dark)
+                    .setSmallIcon(R.drawable.ic_notification)
                     .setContentTitle(data.getString("title"))
                     .setContentText(data.getString("message"))
                     .setPriority(priority)
@@ -147,7 +147,7 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
             }
             // show notification
             val builder = NotificationCompat.Builder(reactApplicationContext, channelId)
-                    .setSmallIcon(R.drawable.common_google_signin_btn_icon_dark)
+                    .setSmallIcon(R.drawable.ic_notification)
                     .setContent(remoteViews)
             NotificationManagerCompat.from(reactApplicationContext).notify(notificationId, builder.build())
         }

@@ -23,6 +23,11 @@
       <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
 
       <!-- start notification settings -->
+      <meta-data
+          android:name="com.google.firebase.messaging.default_notification_icon"
+          android:resource="@drawable/ic_notification" />
+      <meta-data android:name="com.google.firebase.messaging.default_notification_color"
+          android:resource="@android:color/black" />
       <service
           android:name="com.cryptoticket.reactnativepushnotification.CustomFirebaseMessagingService"
           android:exported="false">
