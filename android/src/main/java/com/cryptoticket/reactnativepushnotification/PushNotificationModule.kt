@@ -4,11 +4,15 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
+import android.view.View
+import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.bumptech.glide.Glide
 import com.facebook.react.bridge.*
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.iid.FirebaseInstanceId
+
 
 class PushNotificationModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
@@ -122,7 +126,31 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
             NotificationManagerCompat.from(reactApplicationContext).notify(notificationId, builder.build())
         }
 
-        // title, message, media, url
+        // template event push notification
+        if(template == Templates.EVENT) {
+            val remoteViews = RemoteViews(currentActivity!!.packageName, R.layout.notification_template_event)
+            // set title
+            if(!data.isNull("title")) {
+                remoteViews.setViewVisibility(R.id.textViewTitle, View.VISIBLE)
+                remoteViews.setTextViewText(R.id.textViewTitle, data.getString("title"))
+            }
+            // set message
+            if(!data.isNull("message")) {
+                remoteViews.setViewVisibility(R.id.textViewMessage, View.VISIBLE)
+                remoteViews.setTextViewText(R.id.textViewMessage, data.getString("message"))
+            }
+            // set event media image
+            if(!data.isNull("media")) {
+                remoteViews.setViewVisibility(R.id.imageViewMedia, View.VISIBLE)
+                val bitmap = Glide.with(reactApplicationContext).asBitmap().load(data.getString("media")).submit().get()
+                remoteViews.setImageViewBitmap(R.id.imageViewMedia, bitmap)
+            }
+            // show notification
+            val builder = NotificationCompat.Builder(reactApplicationContext, channelId)
+                    .setSmallIcon(R.drawable.common_google_signin_btn_icon_dark)
+                    .setContent(remoteViews)
+            NotificationManagerCompat.from(reactApplicationContext).notify(notificationId, builder.build())
+        }
     }
 
 }
