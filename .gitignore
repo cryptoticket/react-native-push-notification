@@ -51,3 +51,6 @@ buck-out/
 
 # google services
 example/android/app/google-services.json
+
+# push notification settings
+scripts/config.js

@@ -4,6 +4,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import android.view.View
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
@@ -128,7 +129,7 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
 
         // template event push notification
         if(template == Templates.EVENT) {
-            val remoteViews = RemoteViews(currentActivity!!.packageName, R.layout.notification_template_event)
+            val remoteViews = RemoteViews(reactApplicationContext.packageName, R.layout.notification_template_event)
             // set title
             if(!data.isNull("title")) {
                 remoteViews.setViewVisibility(R.id.textViewTitle, View.VISIBLE)

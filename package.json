@@ -26,6 +26,7 @@
   },
   "devDependencies": {
     "react": "16.8.6",
-    "react-native": "0.60.5"
+    "react-native": "0.60.5",
+    "twilio": "^3.39.2"
   }
 }

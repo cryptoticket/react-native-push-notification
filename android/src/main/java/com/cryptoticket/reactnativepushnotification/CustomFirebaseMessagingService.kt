@@ -1,12 +1,16 @@
 package com.cryptoticket.reactnativepushnotification
 
+import android.content.pm.PackageManager
 import android.util.Log
+import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.WritableNativeMap
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 
 class CustomFirebaseMessagingService : FirebaseMessagingService() {
 
     val CUSTOM_FIREBASE_TAG = "FIREBASE"
+    val DEFAULT_CHANNEL = "com.cryptoticket.reactnativepushnotification.default_channel_id"
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
@@ -26,8 +30,23 @@ class CustomFirebaseMessagingService : FirebaseMessagingService() {
             Log.d(CUSTOM_FIREBASE_TAG, "Payload: ${remoteMessage.data}")
         }
 
+        // convert push notification attributes to react native map
+        val rnMap = WritableNativeMap()
+        for((key, value) in remoteMessage.data) {
+            rnMap.putString(key, value)
+        }
+
         // show notification
-        // showNotification()
+        val module = PushNotificationModule(ReactApplicationContext(applicationContext))
+        val notificationId = (0..9999999).random()
+        val channelId = applicationContext.packageManager.getApplicationInfo(applicationContext.packageName, PackageManager.GET_META_DATA).metaData.getString(DEFAULT_CHANNEL)
+        // default template is common
+        var templateId = PushNotificationModule.Templates.COMMON
+        // check if template is for event
+        if(remoteMessage.data.containsKey("media")) {
+            templateId = PushNotificationModule.Templates.EVENT
+        }
+        module.show(notificationId, templateId, channelId, rnMap)
     }
 
 }

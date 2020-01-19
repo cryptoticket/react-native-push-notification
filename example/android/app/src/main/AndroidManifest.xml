@@ -24,6 +24,9 @@
 
       <!-- start notification settings -->
       <meta-data
+          android:name="com.cryptoticket.reactnativepushnotification.default_channel_id"
+          android:value="my_channel_id" />
+      <meta-data
           android:name="com.google.firebase.messaging.default_notification_icon"
           android:resource="@drawable/ic_notification" />
       <meta-data android:name="com.google.firebase.messaging.default_notification_color"
