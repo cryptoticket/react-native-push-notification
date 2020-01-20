@@ -31,8 +31,8 @@ More info [here](https://firebase.google.com/docs/cloud-messaging/android/receiv
 npm install @cryptoticket/react-native-push-notification --save
 ```
 2. Following [this](https://firebase.google.com/docs/android/setup) tutorial make the following:
--- add generated `google-services.json` file to `android/app` folder
--- add google services dependency to `<project>/build.gradle`:
+- add generated `google-services.json` file to `android/app` folder
+- add google services dependency to `<project>/build.gradle`:
 ```
 buildscript {
 	// ... other settings
@@ -42,35 +42,36 @@ buildscript {
 	}
 }
 ```
--- apply google services plugin to `<project>/<app-module>/build.gradle`:
+- apply google services plugin to `<project>/<app-module>/build.gradle`:
 ```
 apply plugin: 'com.google.gms.google-services'  // add this line
 ```
 3. Add to your app android manifest to the application tag the following code:
 ```
  <!-- start notification settings -->
-      <meta-data
-          android:name="com.cryptoticket.reactnativepushnotification.default_channel_id"
-          android:value="my_channel_id" />
-      <meta-data
-          android:name="com.google.firebase.messaging.default_notification_icon"
-          android:resource="@drawable/ic_notification" />
-      <meta-data android:name="com.google.firebase.messaging.default_notification_color"
-          android:resource="@android:color/black" />
-      <service
-          android:name="com.cryptoticket.reactnativepushnotification.CustomFirebaseMessagingService"
-          android:exported="false">
-          <intent-filter>
-              <action android:name="com.google.firebase.MESSAGING_EVENT" />
-          </intent-filter>
-      </service>
-      <!-- end notification settings -->
+ <meta-data
+ 	android:name="com.cryptoticket.reactnativepushnotification.default_channel_id"
+ 	android:value="my_channel_id" />
+ <meta-data
+   android:name="com.google.firebase.messaging.default_notification_icon"
+   android:resource="@drawable/ic_notification" />
+ <meta-data 
+ 	android:name="com.google.firebase.messaging.default_notification_color"
+ 	android:resource="@android:color/black" />
+ <service
+   android:name="com.cryptoticket.reactnativepushnotification.CustomFirebaseMessagingService"
+   android:exported="false">
+     <intent-filter>
+     	<action android:name="com.google.firebase.MESSAGING_EVENT" />
+     </intent-filter>
+ </service>
+ <!-- end notification settings -->
 ```
 Manifest explanation:
--- **meta-data(com.cryptoticket.reactnativepushnotification.default_channel_id):** default notification channel name for remote notifications. By default all local and remote notifications will use this name. NOTICE: you should manually create this channel on package init(check the *PushNotificationAndroid.createChannel()* API). 
--- **meta-data(com.google.firebase.messaging.default_notification_icon)**: default notification icon for remote push notifications.
---  **meta-data(com.google.firebase.messaging.default_notification_color)**: default notification background color.
--- **service(com.cryptoticket.reactnativepushnotification.CustomFirebaseMessagingService)**: custom firebase service that can receive and show push notifications with custom layout.
+- **meta-data(com.cryptoticket.reactnativepushnotification.default_channel_id):** default notification channel name for remote notifications. By default all local and remote notifications will use this name. NOTICE: you should manually create this channel on package init(check the *PushNotificationAndroid.createChannel()* API). 
+- **meta-data(com.google.firebase.messaging.default_notification_icon)**: default notification icon for remote push notifications.
+-  **meta-data(com.google.firebase.messaging.default_notification_color)**: default notification background color.
+- **service(com.cryptoticket.reactnativepushnotification.CustomFirebaseMessagingService)**: custom firebase service that can receive and show push notifications with custom layout.
 
 4. Create a notification channel for local and remote notifications(the one from *meta-data(com.cryptoticket.reactnativepushnotification.default_channel_id*) on app init (required for android >= 8, SDK >= 26):
 ```
@@ -103,12 +104,12 @@ Creates a notification channel. For android >= 8 (SDK >= 26) channels are requir
 - **channelName**: human readable channel name.
 - **channelDesc**: channel description.
 - **channelImportance**: channel importance, the more importance the chances that user will see a notification. Available values:
--- PushNotificationAndroid.IMPORTANCE_NONE
--- PushNotificationAndroid.IMPORTANCE_MIN
--- PushNotificationAndroid.IMPORTANCE_LOW
--- PushNotificationAndroid.IMPORTANCE_DEFAULT
--- PushNotificationAndroid.IMPORTANCE_HIGH
--- PushNotificationAndroid.IMPORTANCE_MAX
+	- PushNotificationAndroid.IMPORTANCE_NONE
+	- PushNotificationAndroid.IMPORTANCE_MIN
+	- PushNotificationAndroid.IMPORTANCE_LOW
+	- PushNotificationAndroid.IMPORTANCE_DEFAULT
+	- PushNotificationAndroid.IMPORTANCE_HIGH
+	- PushNotificationAndroid.IMPORTANCE_MAX
 
 Example:
 ```
@@ -126,16 +127,16 @@ Shows a push notification. You can use this method locally. This method is also 
 
 - **notificationId**: notification id. We need this id in case we would want to modify a notification.
 - **template**: template id. There are 2 templates available:
--- PushNotificationAndroid.TEMPLATE_COMMON: standard push notification with title and message, 
--- PushNotificationAndroid.TEMPLATE_EVENT: push notification with custom template. Consists of: button with checkmark, small media image, title and text. When your app receive a remote notification with `media` data attribute then PushNotificationAndroid.TEMPLATE_EVENT will be used.
+	- PushNotificationAndroid.TEMPLATE_COMMON: standard push notification with title and message, 
+	- PushNotificationAndroid.TEMPLATE_EVENT: push notification with custom template. Consists of: button with checkmark, small media image, title and text. When your app receive a remote notification with `media` data attribute then PushNotificationAndroid.TEMPLATE_EVENT will be used.
 - **channelId**: channel id. By default you should use the one from android manifest (as remote notifications use the same one).
 - **data**: notification data attributes.
 - **priority(optional)**: notification priority. Android >= 8 (SDK >= 26) uses notification channels to set priority. Android < 8 (SDK < 26) sets priority directly on a notification. So this priority field is for compatibility with Android < 8 (SDK < 26). Available notification priorities:
--- PushNotificationAndroid.PRIORITY_MIN
--- PushNotificationAndroid.PRIORITY_LOW
--- PushNotificationAndroid.PRIORITY_DEFAULT
--- PushNotificationAndroid.PRIORITY_HIGH
--- PushNotificationAndroid.PRIORITY_MAX
+	- PushNotificationAndroid.PRIORITY_MIN
+	- PushNotificationAndroid.PRIORITY_LOW
+	- PushNotificationAndroid.PRIORITY_DEFAULT
+	- PushNotificationAndroid.PRIORITY_HIGH
+	- PushNotificationAndroid.PRIORITY_MAX
 
 Example (default notification with title and message):
 ```
