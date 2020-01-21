@@ -11,6 +11,7 @@ class CustomFirebaseMessagingService : FirebaseMessagingService() {
 
     val CUSTOM_FIREBASE_TAG = "FIREBASE"
     val DEFAULT_CHANNEL = "com.cryptoticket.reactnativepushnotification.default_channel_id"
+    val NOTIFICATION_DATA_ATTRIBUTES = arrayOf("title", "message", "media", "url")
 
     /**
      * On remote push notification receive callback. Shows push notification.
@@ -35,8 +36,12 @@ class CustomFirebaseMessagingService : FirebaseMessagingService() {
             Log.d(CUSTOM_FIREBASE_TAG, "Payload: ${remoteMessage.data}")
         }
 
-        // convert push notification attributes to react native map
+        // initialize empty react native map
         val rnMap = WritableNativeMap()
+        NOTIFICATION_DATA_ATTRIBUTES.forEach {
+            rnMap.putString(it, null)
+        }
+        // convert push notification attributes to react native map
         for((key, value) in remoteMessage.data) {
             rnMap.putString(key, value)
         }
@@ -48,7 +53,7 @@ class CustomFirebaseMessagingService : FirebaseMessagingService() {
         // default template is common
         var templateId = PushNotificationModule.Templates.COMMON
         // check if template is for event
-        if(remoteMessage.data.containsKey("media")) {
+        if(remoteMessage.data.containsKey("media") || remoteMessage.data.containsKey("url")) {
             templateId = PushNotificationModule.Templates.EVENT
         }
         module.show(notificationId, templateId, channelId, rnMap)

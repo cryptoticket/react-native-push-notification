@@ -30,15 +30,25 @@ try {
 */
 
 // send push notification
+
 const dataCommon = {
 	title: 'my remote title',
 	message: 'my remote message'
 };
+
 const dataEvent = {
 	title: 'event title',
 	message: 'event message',
-	media: 'http://red-msk.ru/wp-content/uploads/2019/02/canva-photo-editor-22.png'
+    media: 'http://red-msk.ru/wp-content/uploads/2019/02/canva-photo-editor-22.png'
 };
+
+const dataEventWithUrl = {
+    title: 'event title',
+	message: 'event message',
+    media: 'http://red-msk.ru/wp-content/uploads/2019/02/canva-photo-editor-22.png',
+    url: 'https://google.com'
+};
+
 try {
     client.notify.services(serviceId)
              .notifications

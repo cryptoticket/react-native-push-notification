@@ -64,7 +64,29 @@ export default class App extends React.Component {
       const data = {
         title: "title",
         message: "my message",
-        media: "http://red-msk.ru/wp-content/uploads/2019/02/canva-photo-editor-22.png"
+        media: "http://red-msk.ru/wp-content/uploads/2019/02/canva-photo-editor-22.png",
+        url: null
+      };
+      const priority = PushNotificationAndroid.PRIORITY_DEFAULT;
+      PushNotificationAndroid.show(notificationId, template, channelId, data, priority);
+    } catch(err) {
+      Alert.alert("Error", err);
+    }
+  }
+
+  /**
+   * Show event notification with url
+   */
+  onShowEventNotificationWithUrlPress = () => {
+    try {
+      const notificationId = 1;
+      const template = PushNotificationAndroid.TEMPLATE_EVENT;
+      const channelId = 'my_channel_id';
+      const data = {
+        title: "title",
+        message: "my message",
+        media: "http://red-msk.ru/wp-content/uploads/2019/02/canva-photo-editor-22.png",
+        url: "https://google.com"
       };
       const priority = PushNotificationAndroid.PRIORITY_DEFAULT;
       PushNotificationAndroid.show(notificationId, template, channelId, data, priority);
@@ -96,6 +118,10 @@ export default class App extends React.Component {
 
         <View style={{marginTop: 10}} >
           <Button title="Show event notification" onPress={this.onShowEventNotificationPress} />
+        </View>
+
+        <View style={{marginTop: 10}} >
+          <Button title="Show event notification with url" onPress={this.onShowEventNotificationWithUrlPress} />
         </View>
       </View>
     );

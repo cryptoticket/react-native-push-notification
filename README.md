@@ -19,7 +19,8 @@ When app is in background only plain data notifications can be customized (fireb
 	data: {
 		title: "push notification title",
 		message: "push notification body",
-		media: "https://example.com/image.png" // optional
+		media: "https://example.com/image.png", // optional
+        url: "https://google.com" // optional
 	}
 }
 ```
@@ -139,7 +140,7 @@ Shows a push notification. You can use this method locally. This method is also 
 - **notificationId**: notification id. We need this id in case we would want to modify a notification.
 - **template**: template id. There are 2 templates available:
 	- PushNotificationAndroid.TEMPLATE_COMMON: standard push notification with title and message, 
-	- PushNotificationAndroid.TEMPLATE_EVENT: push notification with custom template. Consists of: button with checkmark, small media image, title and text. When your app receive a remote notification with `media` data attribute then PushNotificationAndroid.TEMPLATE_EVENT will be used.
+	- PushNotificationAndroid.TEMPLATE_EVENT: push notification with custom template. Consists of: button with checkmark, small media image, url that should be opened on notification content click, title and text. When your app receive a remote notification with `media` or `url` data attributes then PushNotificationAndroid.TEMPLATE_EVENT will be used.
 - **channelId**: channel id. By default you should use the one from android manifest (as remote notifications use the same one).
 - **data**: notification data attributes.
 - **priority(optional)**: notification priority. Android >= 8 (SDK >= 26) uses notification channels to set priority. Android < 8 (SDK < 26) sets priority directly on a notification. So this priority field is for compatibility with Android < 8 (SDK < 26). Available notification priorities:
@@ -163,15 +164,16 @@ const priority = PushNotificationAndroid.PRIORITY_DEFAULT;
 PushNotificationAndroid.show(notificationId, template, channelId, data, priority);
 ```
 
-Example (custom notification template with checkmark button, media image, title and message):
+Example (custom notification template with checkmark button, media image, url that will be opened on notification content click, title and message):
 ```
 import { PushNotificationAndroid } from '@cryptoticket/react-native-push-notification';
 const template = PushNotificationAndroid.TEMPLATE_EVENT;
 const channelId = 'my_channel_id';
 const data = {
-	title: "title",
-	message: "my message",
-	media: "http://red-msk.ru/wp-content/uploads/2019/02/canva-photo-editor-22.png"
+	title: "title", // optional (can be null)
+	message: "my message", // optional (can be null)
+	media: "http://red-msk.ru/wp-content/uploads/2019/02/canva-photo-editor-22.png", // optional (can be null)
+    url: "https://google.com" // optional (can be null)
 };
 const priority = PushNotificationAndroid.PRIORITY_DEFAULT;
 PushNotificationAndroid.show(notificationId, template, channelId, data, priority);

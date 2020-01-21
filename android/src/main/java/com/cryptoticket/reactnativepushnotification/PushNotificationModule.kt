@@ -175,6 +175,14 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
                 val bitmap = Glide.with(reactApplicationContext).asBitmap().load(data.getString("media")).submit().get()
                 remoteViews.setImageViewBitmap(R.id.imageViewMedia, bitmap)
             }
+            // if url param exists open this url in browser on notification click
+            if(!data.isNull("url")) {
+                val openUrlIntent = Intent(PushNotificationBroadcastReceiver.Actions.OPEN_URL)
+                openUrlIntent.component = ComponentName(reactApplicationContext, BROADCAST_RECEVIER_CLASSNAME)
+                openUrlIntent.putExtra("url", data.getString("url"))
+                val openUrlPendingIntent = PendingIntent.getBroadcast(reactApplicationContext, 0, openUrlIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+                builder.setContentIntent(openUrlPendingIntent)
+            }
             // on check button click send CLOSE_NOTIFICATION action to broadcast receiver that closes notification
             val closeNotificationIntent = Intent(PushNotificationBroadcastReceiver.Actions.CLOSE_NOTIFICATION)
             closeNotificationIntent.component = ComponentName(reactApplicationContext, BROADCAST_RECEVIER_CLASSNAME)
