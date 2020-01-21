@@ -173,7 +173,7 @@ const data = {
 	title: "title", // optional (can be null)
 	message: "my message", // optional (can be null)
 	media: "http://red-msk.ru/wp-content/uploads/2019/02/canva-photo-editor-22.png", // optional (can be null)
-    url: "https://google.com" // optional (can be null)
+	url: "https://google.com" // optional (can be null)
 };
 const priority = PushNotificationAndroid.PRIORITY_DEFAULT;
 PushNotificationAndroid.show(notificationId, template, channelId, data, priority);
