@@ -41,6 +41,12 @@
               <action android:name="com.google.firebase.MESSAGING_EVENT" />
           </intent-filter>
       </service>
+      <receiver android:name="com.cryptoticket.reactnativepushnotification.PushNotificationBroadcastReceiver"  android:exported="true">
+          <intent-filter>
+              <action android:name="com.cryptoticket.reactnativepushnotification.action.CLOSE_NOTIFICATION"/>
+              <category android:name="android.intent.category.DEFAULT"/>
+          </intent-filter>
+      </receiver>
       <!-- end notification settings -->
 
     </application>

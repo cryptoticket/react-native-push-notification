@@ -4,8 +4,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.TaskStackBuilder
-import android.content.Context
-import android.content.Intent
+import android.content.*
 import android.content.pm.PackageManager
 import android.os.Build
 import android.view.View
@@ -32,6 +31,11 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
      * Default activity meta key from android manifest
      */
     val DEFAULT_ACTIVITY = "com.cryptoticket.reactnativepushnotification.default_activity"
+
+    /**
+     * Push notification broadcast receiver class name
+     */
+    val BROADCAST_RECEVIER_CLASSNAME = "com.cryptoticket.reactnativepushnotification.PushNotificationBroadcastReceiver"
 
     /**
      * Returns module that should be used in React Native
@@ -171,6 +175,13 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
                 val bitmap = Glide.with(reactApplicationContext).asBitmap().load(data.getString("media")).submit().get()
                 remoteViews.setImageViewBitmap(R.id.imageViewMedia, bitmap)
             }
+            // on check button click send CLOSE_NOTIFICATION action to broadcast receiver that closes notification
+            val closeNotificationIntent = Intent(PushNotificationBroadcastReceiver.Actions.CLOSE_NOTIFICATION)
+            closeNotificationIntent.component = ComponentName(reactApplicationContext, BROADCAST_RECEVIER_CLASSNAME)
+            closeNotificationIntent.putExtra("id", notificationId)
+            val closeNotificationPendingIntent = PendingIntent.getBroadcast(reactApplicationContext, notificationId, closeNotificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+            remoteViews.setOnClickPendingIntent(R.id.buttonCheck, closeNotificationPendingIntent)
+            // set notification template
             builder.setContent(remoteViews)
         }
 

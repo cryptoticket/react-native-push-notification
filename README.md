@@ -68,6 +68,12 @@ apply plugin: 'com.google.gms.google-services'  // add this line
      	<action android:name="com.google.firebase.MESSAGING_EVENT" />
      </intent-filter>
  </service>
+ <receiver android:name="com.cryptoticket.reactnativepushnotification.PushNotificationBroadcastReceiver"  android:exported="true">
+ 	<intent-filter>
+ 		<action android:name="com.cryptoticket.reactnativepushnotification.action.CLOSE_NOTIFICATION"/>
+ 		<category android:name="android.intent.category.DEFAULT"/>
+ 	</intent-filter>
+ </receiver>
  <!-- end notification settings -->
 ```
 Manifest explanation:
@@ -76,6 +82,7 @@ Manifest explanation:
 - **meta-data(com.google.firebase.messaging.default_notification_icon)**: default notification icon for remote push notifications.
 -  **meta-data(com.google.firebase.messaging.default_notification_color)**: default notification background color.
 - **service(com.cryptoticket.reactnativepushnotification.CustomFirebaseMessagingService)**: custom firebase service that can receive and show push notifications with custom layout.
+- **receiver(com.cryptoticket.reactnativepushnotification.PushNotificationBroadcastReceiver)**: broadcast receiver that handles notification interactions(ex: on custom button click in notification). At the moment can receive only CLOSE_NOTIFICATION action with id in *Intent extras* that closes push notification.
 
 4. Create a notification channel for local and remote notifications(the one from *meta-data(com.cryptoticket.reactnativepushnotification.default_channel_id*) on app init (required for android >= 8, SDK >= 26):
 ```

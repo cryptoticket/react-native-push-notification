@@ -12,6 +12,11 @@ class CustomFirebaseMessagingService : FirebaseMessagingService() {
     val CUSTOM_FIREBASE_TAG = "FIREBASE"
     val DEFAULT_CHANNEL = "com.cryptoticket.reactnativepushnotification.default_channel_id"
 
+    /**
+     * On remote push notification receive callback. Shows push notification.
+     *
+     * @param remoteMessage push notification data
+     */
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
         Log.d(CUSTOM_FIREBASE_TAG, "Notification received")
