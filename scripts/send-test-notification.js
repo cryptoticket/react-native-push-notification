@@ -8,7 +8,7 @@ const accountSid = config.ACCOUNT_SID;
 const authToken = config.AUTH_TOKEN;
 const serviceId = config.SERVICE_ID;
 const userIdentity = 'user-1';
-const fcmAddress = 'dixjxuPSemY:APA91bE8IvwT9t5pGvEMGNx9DV_ghXe8GLx3rf3wGcQ07rilPUr_OJBvggouYuStCBPuMThiUY-F0_QjIg8ud8J_h3KU-hLBMxqMiC9Jg1ZlEKIRcmVDMqA577M1WhgS_qeM3MmhueiS';
+const fcmAddress = config.FCM_ADDRESS;
 
 const client = require('twilio')(accountSid, authToken);
 
@@ -42,7 +42,7 @@ const dataEvent = {
 try {
     client.notify.services(serviceId)
              .notifications
-             .create({data: dataEvent, identity: userIdentity})
+             .create({data: dataCommon, identity: userIdentity})
              .then(notification => console.log(notification.sid));
 } catch(err) {
     console.log("error on sending notification");

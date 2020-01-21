@@ -23,7 +23,7 @@ When app is in background only plain data notifications can be customized (fireb
 	}
 }
 ```
-More info [here](https://firebase.google.com/docs/cloud-messaging/android/receive). Twilio example [here](scripts/send-test-notification.js) (NOTICE: you should set twilio parameters: *account id, auth token, service id*).
+More info [here](https://firebase.google.com/docs/cloud-messaging/android/receive). Twilio example [here](scripts/send-test-notification.js) (NOTICE: you should set twilio parameters: *account id, auth token, service id, device fcm token*).
 
 ## How to install
 1. Install npm package
@@ -50,6 +50,9 @@ apply plugin: 'com.google.gms.google-services'  // add this line
 ```
  <!-- start notification settings -->
  <meta-data
+    android:name="com.cryptoticket.reactnativepushnotification.default_activity"
+    android:value="com.example.MainActivity" />
+ <meta-data
  	android:name="com.cryptoticket.reactnativepushnotification.default_channel_id"
  	android:value="my_channel_id" />
  <meta-data
@@ -68,6 +71,7 @@ apply plugin: 'com.google.gms.google-services'  // add this line
  <!-- end notification settings -->
 ```
 Manifest explanation:
+- **meta-data(com.cryptoticket.reactnativepushnotification.default_activity)**: your application default activity main. When user clicks on push notification this activity will be opened. Usually you should set here the string similar to *com.yourpackage.MainActivity*.
 - **meta-data(com.cryptoticket.reactnativepushnotification.default_channel_id):** default notification channel name for remote notifications. By default all local and remote notifications will use this name. NOTICE: you should manually create this channel on package init(check the *PushNotificationAndroid.createChannel()* API). 
 - **meta-data(com.google.firebase.messaging.default_notification_icon)**: default notification icon for remote push notifications.
 -  **meta-data(com.google.firebase.messaging.default_notification_color)**: default notification background color.

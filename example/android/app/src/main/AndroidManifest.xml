@@ -24,6 +24,9 @@
 
       <!-- start notification settings -->
       <meta-data
+          android:name="com.cryptoticket.reactnativepushnotification.default_activity"
+          android:value="com.example.MainActivity" />
+      <meta-data
           android:name="com.cryptoticket.reactnativepushnotification.default_channel_id"
           android:value="my_channel_id" />
       <meta-data

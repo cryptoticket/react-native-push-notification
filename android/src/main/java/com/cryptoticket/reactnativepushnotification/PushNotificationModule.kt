@@ -2,9 +2,12 @@ package com.cryptoticket.reactnativepushnotification
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.TaskStackBuilder
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
-import android.util.Log
 import android.view.View
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
@@ -24,6 +27,11 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
         val COMMON = 0
         val EVENT = 1
     }
+
+    /**
+     * Default activity meta key from android manifest
+     */
+    val DEFAULT_ACTIVITY = "com.cryptoticket.reactnativepushnotification.default_activity"
 
     /**
      * Returns module that should be used in React Native
@@ -117,14 +125,31 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
      */
     @ReactMethod
     fun show(notificationId: Int, template: Int, channelId: String, data: ReadableMap, priority: Int = NotificationCompat.PRIORITY_DEFAULT) {
-        // common push notification
+
+        // prepare pending intent that opens main activity by class name from android manifest
+        val mainIntent = Intent()
+        mainIntent.setClassName(
+                reactApplicationContext,
+                reactApplicationContext.packageManager.getApplicationInfo(reactApplicationContext.packageName, PackageManager.GET_META_DATA).metaData.getString(DEFAULT_ACTIVITY)
+        )
+        val pendingIntent = TaskStackBuilder.create(reactApplicationContext).run {
+            addNextIntentWithParentStack(mainIntent)
+            getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)
+        }
+
+        // prepare base notification builder
+        val builder = NotificationCompat.Builder(reactApplicationContext, channelId)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .setPriority(priority)
+
+        // template common push notification
         if(template == Templates.COMMON) {
-            val builder = NotificationCompat.Builder(reactApplicationContext, channelId)
-                    .setSmallIcon(R.drawable.ic_notification)
-                    .setContentTitle(data.getString("title"))
-                    .setContentText(data.getString("message"))
-                    .setPriority(priority)
-            NotificationManagerCompat.from(reactApplicationContext).notify(notificationId, builder.build())
+            builder.apply {
+                setContentTitle(data.getString("title"))
+                setContentText(data.getString("message"))
+            }
         }
 
         // template event push notification
@@ -146,12 +171,11 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
                 val bitmap = Glide.with(reactApplicationContext).asBitmap().load(data.getString("media")).submit().get()
                 remoteViews.setImageViewBitmap(R.id.imageViewMedia, bitmap)
             }
-            // show notification
-            val builder = NotificationCompat.Builder(reactApplicationContext, channelId)
-                    .setSmallIcon(R.drawable.ic_notification)
-                    .setContent(remoteViews)
-            NotificationManagerCompat.from(reactApplicationContext).notify(notificationId, builder.build())
+            builder.setContent(remoteViews)
         }
+
+        // show notification
+        NotificationManagerCompat.from(reactApplicationContext).notify(notificationId, builder.build())
     }
 
 }
