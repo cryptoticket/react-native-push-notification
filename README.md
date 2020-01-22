@@ -155,11 +155,11 @@ Example (default notification with title and message):
 import { PushNotificationAndroid } from '@cryptoticket/react-native-push-notification';
 const notificationId = 1;
 const template = PushNotificationAndroid.TEMPLATE_COMMON;
- const channelId = 'my_channel_id';
- const data = {
- 	title: "my title",
- 	message: "my message"
- };
+const channelId = 'my_channel_id';
+const data = {
+	title: "my title",
+	message: "my message"
+};
 const priority = PushNotificationAndroid.PRIORITY_DEFAULT;
 PushNotificationAndroid.show(notificationId, template, channelId, data, priority);
 ```
@@ -179,14 +179,100 @@ const priority = PushNotificationAndroid.PRIORITY_DEFAULT;
 PushNotificationAndroid.show(notificationId, template, channelId, data, priority);
 ```
 
-### How to run example folder
+## How to add a custom template to this repository
+
+All new notification templates are added in native code. Let's add a weather notification template which shows current temperature (with a single text view).
+
+1. Create a new notification template file `notification_template_weather.xml` inside `android/src/main/res/layout` folder with the following content:
+```
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="64dp">
+
+    <TextView
+        android:id="@+id/textViewTemperature"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1" />
+</LinearLayout>
+```
+
+We show a single text view with id `textViewTemperature`.
+
+NOTICE: by default android notification height is 64dp so you should follow this rule.
+
+NOTICE: not all layouts and widgets are supported in a custom push notification template. More info [here](https://developer.android.com/reference/android/widget/RemoteViews.html).
+
+2. Modify the `Templates` object in `PushNotificationModule.kt` file:
+```
+object Templates {
+    val COMMON = 0
+    val EVENT = 1
+    val WEATHER = 2 // your new template
+}
+```
+
+3. Modify the `getConstants()` method in `PushNotificationModule.kt` file so that your template could be accessible from React Native:
+```
+override fun getConstants(): MutableMap<String, Any> {
+    val constants = mutableMapOf<String, Any>()
+    // ... other constants
+    constants.put("TEMPLATE_WEATHER", Templates.WEATHER) // your new template
+    return constants
+}
+```
+
+4. Assign notification data attributes to the xml temlpate in `show()` method in `PushNotificationModule.`:
+```
+@ReactMethod
+fun show(notificationId: Int, template: Int, channelId: String, data: ReadableMap, priority: Int = NotificationCompat.PRIORITY_DEFAULT) {
+    // ... other templates
+    if(template == Templates.WEATHER) {
+        val remoteViews = RemoteViews(reactApplicationContext.packageName, R.layout.notification_template_weather)
+        // assign "temperature" notification data attribute to "textViewTemperature" TextView in xml template
+        remoteViews.setTextViewText(R.id.textViewTemperature, data.getString("temperature"))
+        builder.setContent(remoteViews)
+    }
+
+    // show notification
+    NotificationManagerCompat.from(reactApplicationContext).notify(notificationId, builder.build())
+}
+```
+
+5. Modify `CustomFirebaseMessagingService.kt` service so that remote notifications could use your template. Add the following code to the `onMessageReceived()` method:
+```
+override fun onMessageReceived(remoteMessage: RemoteMessage) {
+    // ... other code
+    // if notification has "temperature" data attribute then use WEATHER template
+    if(!remoteMessage.data.get("temperature").isNullOrEmpty()) {
+        templateId = PushNotificationModule.Templates.WEATHER
+    }
+    module.show(notificationId, templateId, channelId, rnMap)
+}
+```
+
+6. Now all remote notifications with "temperature" data attribute by default will use WEATHER notification template. You can show local notification with the weather template using the following code:
+```
+import { PushNotificationAndroid } from '@cryptoticket/react-native-push-notification';
+const notificationId = 1;
+const template = PushNotificationAndroid.TEMPLATE_WEATHER;
+const channelId = 'my_channel_id';
+const data = {
+    temperature: "+24 degrees"
+};
+const priority = PushNotificationAndroid.PRIORITY_DEFAULT;
+PushNotificationAndroid.show(notificationId, template, channelId, data, priority);
+```
+
+## How to run example folder
 1. Inside the `example` folder run:
 ```
 npm install
 ```
 2. Following [this tutorial](https://firebase.google.com/docs/android/setup) generate `google-services.json` and add it to `example/android/app` folder.
 
-### Troubleshooting
+## Troubleshooting
 - **java.lang.IllegalStateException: GeneratedAppGlideModuleImpl is implemented incorrectly. If you've manually implemented this class, remove your implementation. The Annotation processor will generate a correct implementation.**
 
 You may get this error on app build if one of your npm dependencies uses glide. Solution is [here](https://github.com/DylanVann/react-native-fast-image/blob/master/docs/app-glide-module.md). You should add the following code to your `android/build.gradle`:
@@ -250,6 +336,5 @@ Add your custom service (which modifies twilio notification params) to the manif
 ```
 
 
-### TODO
-- docs: how to add a custom template
+## TODO
 - tests + docs "how to run tests"
