@@ -20,7 +20,7 @@ When app is in background only plain data notifications can be customized (fireb
 		title: "push notification title",
 		message: "push notification body",
 		media: "https://example.com/image.png", // optional
-        url: "https://google.com" // optional
+		url: "https://google.com" // optional
 	}
 }
 ```
@@ -82,7 +82,7 @@ Manifest explanation:
 - **meta-data(com.cryptoticket.reactnativepushnotification.default_channel_id):** default notification channel name for remote notifications. By default all local and remote notifications will use this name. NOTICE: you should manually create this channel on package init(check the *PushNotificationAndroid.createChannel()* API). 
 - **meta-data(com.google.firebase.messaging.default_notification_icon)**: default notification icon for remote push notifications.
 -  **meta-data(com.google.firebase.messaging.default_notification_color)**: default notification background color.
-- **service(com.cryptoticket.reactnativepushnotification.CustomFirebaseMessagingService)**: custom firebase service that can receive and show push notifications with custom layout.
+- **service(com.cryptoticket.reactnativepushnotification.CustomFirebaseMessagingService)**: custom firebase service that receives and shows push notifications with custom layout. This service works "out of the box" so you don't need to implement any *onNotification()* listeners in your React Native code.
 - **receiver(com.cryptoticket.reactnativepushnotification.PushNotificationBroadcastReceiver)**: broadcast receiver that handles notification interactions(ex: on custom button click in notification). At the moment can receive only CLOSE_NOTIFICATION action with id in *Intent extras* that closes push notification.
 
 4. Create a notification channel for local and remote notifications(the one from *meta-data(com.cryptoticket.reactnativepushnotification.default_channel_id*) on app init (required for android >= 8, SDK >= 26):
@@ -112,10 +112,10 @@ console.log(token); // 7rilPUr_OJBvggou...
 
 Creates a notification channel. For android >= 8 (SDK >= 26) channels are required when you show a push notification. NOTICE: you should call this method on app init and pass *channel id* from your manifest file.
 
-- **channelId**: channel id. Used on notification show. Channel id is displayed in app notification settings.
-- **channelName**: human readable channel name.
+- **channelId**: channel id. Used on notification show.
+- **channelName**: human readable channel name. Channel name is displayed in app notification settings.
 - **channelDesc**: channel description.
-- **channelImportance**: channel importance, the more importance the chances that user will see a notification. Available values:
+- **channelImportance**: channel importance, the more importance the more chances that user will see a notification. Available values:
 	- PushNotificationAndroid.IMPORTANCE_NONE
 	- PushNotificationAndroid.IMPORTANCE_MIN
 	- PushNotificationAndroid.IMPORTANCE_LOW
@@ -185,6 +185,70 @@ PushNotificationAndroid.show(notificationId, template, channelId, data, priority
 npm install
 ```
 2. Following [this tutorial](https://firebase.google.com/docs/android/setup) generate `google-services.json` and add it to `example/android/app` folder.
+
+### Troubleshooting
+- **java.lang.IllegalStateException: GeneratedAppGlideModuleImpl is implemented incorrectly. If you've manually implemented this class, remove your implementation. The Annotation processor will generate a correct implementation.**
+
+You may get this error on app build if one of your npm dependencies uses glide. Solution is [here](https://github.com/DylanVann/react-native-fast-image/blob/master/docs/app-glide-module.md). You should add the following code to your `android/build.gradle`:
+```
+project.ext {
+    excludeAppGlideModule = true
+}
+```
+- **twilio remote notifications**
+
+By default twilio wraps notification body(message) in `twi_body` param. This package expects param `message` to be a notification body, not `twi_body`. Solution: copy `twi_body` notification attribute to `message` attribute on remote notification receive.
+
+Create a new class and extend existing `CustomFirebaseMessagingService`:
+```
+package com.example;
+
+import com.cryptoticket.reactnativepushnotification.CustomFirebaseMessagingService;
+import com.google.firebase.messaging.RemoteMessage;
+import java.util.Map;
+
+/**
+ * Extends react-native-push-notification message service.
+ */
+public class MainMessagingService extends CustomFirebaseMessagingService {
+    
+    @Override
+    public void onMessageReceived(RemoteMessage remoteMessage) {
+        /**
+         * By default twilio sends notification body message in "twi_body" param.
+         * Our lib needs notification message param to be called "message",
+         * so we copy "twi_body" to "message" in remote message data map.
+         */
+        if(remoteMessage.getData().containsKey("twi_body")) {
+            remoteMessage.getData().put("message", remoteMessage.getData().get("twi_body"));
+        }
+        // call parent method
+        super.onMessageReceived(remoteMessage);
+    }
+}
+
+```
+Delete the default firebase service from the manifest:
+```
+<service
+   android:name="com.cryptoticket.reactnativepushnotification.CustomFirebaseMessagingService"
+   android:exported="false">
+     <intent-filter>
+     	<action android:name="com.google.firebase.MESSAGING_EVENT" />
+     </intent-filter>
+ </service>
+```
+Add your custom service (which modifies twilio notification params) to the manifest:
+```
+<service
+  android:name=".MainMessagingService"
+  android:exported="false">
+  	<intent-filter>
+  		<action android:name="com.google.firebase.MESSAGING_EVENT" />
+  	</intent-filter>
+</service>
+```
+
 
 ### TODO
 - docs: how to add a custom template

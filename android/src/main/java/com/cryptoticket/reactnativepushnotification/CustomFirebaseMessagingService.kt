@@ -7,7 +7,7 @@ import com.facebook.react.bridge.WritableNativeMap
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 
-class CustomFirebaseMessagingService : FirebaseMessagingService() {
+open class CustomFirebaseMessagingService : FirebaseMessagingService() {
 
     val CUSTOM_FIREBASE_TAG = "FIREBASE"
     val DEFAULT_CHANNEL = "com.cryptoticket.reactnativepushnotification.default_channel_id"
@@ -53,7 +53,7 @@ class CustomFirebaseMessagingService : FirebaseMessagingService() {
         // default template is common
         var templateId = PushNotificationModule.Templates.COMMON
         // check if template is for event
-        if(remoteMessage.data.containsKey("media") || remoteMessage.data.containsKey("url")) {
+        if(!remoteMessage.data.get("media").isNullOrEmpty() || !remoteMessage.data.get("url").isNullOrEmpty()) {
             templateId = PushNotificationModule.Templates.EVENT
         }
         module.show(notificationId, templateId, channelId, rnMap)
