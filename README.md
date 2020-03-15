@@ -72,6 +72,8 @@ apply plugin: 'com.google.gms.google-services'  // add this line
  <receiver android:name="com.cryptoticket.reactnativepushnotification.PushNotificationBroadcastReceiver"  android:exported="true">
  	<intent-filter>
  		<action android:name="com.cryptoticket.reactnativepushnotification.action.CLOSE_NOTIFICATION"/>
+        <action android:name="com.cryptoticket.reactnativepushnotification.action.OPEN_URL"/>
+        <action android:name="com.cryptoticket.reactnativepushnotification.action.PRESS_ON_NOTIFICATION"/>
  		<category android:name="android.intent.category.DEFAULT"/>
  	</intent-filter>
  </receiver>
@@ -83,7 +85,10 @@ Manifest explanation:
 - **meta-data(com.google.firebase.messaging.default_notification_icon)**: default notification icon for remote push notifications.
 -  **meta-data(com.google.firebase.messaging.default_notification_color)**: default notification background color.
 - **service(com.cryptoticket.reactnativepushnotification.CustomFirebaseMessagingService)**: custom firebase service that receives and shows push notifications with custom layout. This service works "out of the box" so you don't need to implement any *onNotification()* listeners in your React Native code.
-- **receiver(com.cryptoticket.reactnativepushnotification.PushNotificationBroadcastReceiver)**: broadcast receiver that handles notification interactions(ex: on custom button click in notification). At the moment can receive only CLOSE_NOTIFICATION action with id in *Intent extras* that closes push notification.
+- **receiver(com.cryptoticket.reactnativepushnotification.PushNotificationBroadcastReceiver)**: broadcast receiver that handles notification interactions(ex: on custom button click in notification). At the moment the following actions are available:
+	-  CLOSE_NOTIFICATION: closes push notification, notification `id` param should be passed in *Intent extras*.
+	-  OPEN_URL: opens url in browser on notification press, `url` param should be passed in *Intent extras*.
+	-  PRESS_ON_NOTIFICATION: notification press handler, by default opens app's main screen(this behavior can be overridden, check the "How to add deep links support" section).
 
 4. Create a notification channel for local and remote notifications(the one from *meta-data(com.cryptoticket.reactnativepushnotification.default_channel_id*) on app init (required for android >= 8, SDK >= 26):
 ```
@@ -264,6 +269,91 @@ const data = {
 const priority = PushNotificationAndroid.PRIORITY_DEFAULT;
 PushNotificationAndroid.show(notificationId, template, channelId, data, priority);
 ```
+
+## How to add deep links support
+By default main app screen is opened when user presses on any notification. With this package you can add the ability to open app via deep link on notification press. For example, if you receive `content_id` in notification data attributes then on notification press you can open app by deep link (ex: `app://content/1`) and inside your app handle this link as you need.
+
+1. Add intent filter to `MainActivity` section to `AndroidManifest.xml` file:
+```
+<activity
+  android:name=".MainActivity"
+  android:label="@string/app_name"
+  android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+  android:windowSoftInputMode="adjustResize">
+    <intent-filter>
+      <action android:name="android.intent.action.VIEW" />
+      <category android:name="android.intent.category.DEFAULT" />
+      <category android:name="android.intent.category.BROWSABLE" />
+      <data android:scheme="app" android:host="content" />
+    </intent-filter>
+</activity>
+```
+
+Now your app should be able to handle deep links, for example `app://content/1`. You can open app from deep link via adb console command `adb shell am start -W -a android.intent.action.VIEW -d "app://content/1" com.example`(use your app package name).
+
+2. Create a new native class that should extend existing broadcast receiver and override `onNotificationPress()` function:
+```
+package com.example;
+
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Bundle;
+import android.util.Log;
+
+import com.cryptoticket.reactnativepushnotification.PushNotificationBroadcastReceiver;
+
+public class CustomPushNotificationBroadcastReceiver extends PushNotificationBroadcastReceiver {
+    @Override
+    public void onNotificationPress(Context context, Intent intent) {
+        boolean shouldHandleDeepLink = true;
+        if(shouldHandleDeepLink) {
+            // list all notification data attributes
+            Bundle bundle = intent.getExtras();
+            if (bundle != null) {
+                for (String key : bundle.keySet()) {
+                    Log.d("CUSTOM RECEIVER", key + " : " + (bundle.get(key) != null ? bundle.get(key) : "NULL"));
+                }
+            }
+            // open app by deep link
+            Intent mainIntent = new Intent(Intent.ACTION_VIEW);
+            mainIntent.setData(Uri.parse("app://content/1"));
+            mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(mainIntent);
+        } else {
+            // open main app activity by default
+            super.onNotificationPress(context, intent);
+        }
+    }
+}
+
+```
+
+So you may check notification data attributes and depening on them open app from deep link or use the default behavior which opens app's main screen.
+
+3. Tell the package the class name of your broadcast receiver. Add the following xml to `AndroidManifest.xml`:
+```
+<!-- start optional notification settings -->
+  <meta-data
+  	android:name="com.cryptoticket.reactnativepushnotification.default_broadcast_receiver"
+  	android:value="com.example.CustomPushNotificationBroadcastReceiver" />
+<!-- end optional notification settings -->
+```
+
+4. Tell the package that you're going to use your own broadcast receiver. Update the `receiver` name in `AndroidManifest.xml`.
+
+Old:
+```
+<receiver android:name="com.cryptoticket.reactnativepushnotification.PushNotificationBroadcastReceiver" android:exported="true">
+```
+
+New:
+```
+<receiver android:name=".CustomPushNotificationBroadcastReceiver" android:exported="true">
+```
+
+5. Now you can get deep link in your app via [React Native Linking library](https://reactnative.dev/docs/linking).
+
 
 ## How to run example folder
 1. Inside the `example` folder run:

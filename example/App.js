@@ -1,9 +1,33 @@
 import React from 'react';
-import { Alert, Button, Text, View } from 'react-native';
+import { Alert, Button, Linking, Text, View } from 'react-native';
 
 import { PushNotificationAndroid } from './PushNotification';
 
 export default class App extends React.Component {
+
+  /**
+   * On component init
+   */
+  async componentDidMount() {
+    const initialUrl = await Linking.getInitialURL();
+    console.log('initial URL: ', initialUrl);
+    Linking.addEventListener('url', this.handleDeepLink);
+  }
+
+  /**
+   * On component remove
+   */
+  componentWillUnmount() {
+    Linking.removeEventListener('url', this.handleDeepLink);
+  };
+
+  /**
+   * On deep link appear
+   */
+  handleDeepLink = (event) => {
+    console.log('on linking URL');
+    console.log(event);
+  }
 
   /**
    * Creates a new notification channel

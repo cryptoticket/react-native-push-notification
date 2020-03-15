@@ -3,7 +3,6 @@ package com.cryptoticket.reactnativepushnotification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.TaskStackBuilder
 import android.content.*
 import android.content.pm.PackageManager
 import android.os.Build
@@ -30,12 +29,20 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
     /**
      * Default activity meta key from android manifest
      */
-    val DEFAULT_ACTIVITY = "com.cryptoticket.reactnativepushnotification.default_activity"
+    companion object {
+        val DEFAULT_ACTIVITY = "com.cryptoticket.reactnativepushnotification.default_activity"
+    }
+
 
     /**
-     * Push notification broadcast receiver class name
+     * Default push notification broadcast receiver class name
      */
-    val BROADCAST_RECEVIER_CLASSNAME = "com.cryptoticket.reactnativepushnotification.PushNotificationBroadcastReceiver"
+    val DEFAULT_BROADCAST_RECEVIER_CLASSNAME = "com.cryptoticket.reactnativepushnotification.PushNotificationBroadcastReceiver"
+
+    /**
+     * Meta key from AndroidManifest.xml for default broadcast receiver classname
+     */
+    val META_KEY_DEFAULT_BROADCAST_RECEVIER_CLASSNAME = "com.cryptoticket.reactnativepushnotification.default_broadcast_receiver"
 
     /**
      * Returns module that should be used in React Native
@@ -130,16 +137,19 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
     @ReactMethod
     fun show(notificationId: Int, template: Int, channelId: String, data: ReadableMap, priority: Int = NotificationCompat.PRIORITY_DEFAULT) {
 
-        // prepare pending intent that opens main activity by class name from android manifest
-        val mainIntent = Intent()
-        mainIntent.setClassName(
-                reactApplicationContext,
-                reactApplicationContext.packageManager.getApplicationInfo(reactApplicationContext.packageName, PackageManager.GET_META_DATA).metaData.getString(DEFAULT_ACTIVITY)
-        )
-        val pendingIntent = TaskStackBuilder.create(reactApplicationContext).run {
-            addNextIntentWithParentStack(mainIntent)
-            getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)
+        // prepare pending intent that opens main activity
+        val mainIntent = Intent(PushNotificationBroadcastReceiver.Actions.PRESS_ON_NOTIFICATION)
+        // if target broadcast receiver exists in AndroidManifest.xml then use it, else use default broadcast receiver
+        var defaultBroadcastReceiverClassName = reactApplicationContext.packageManager.getApplicationInfo(reactApplicationContext.packageName, PackageManager.GET_META_DATA).metaData.getString(META_KEY_DEFAULT_BROADCAST_RECEVIER_CLASSNAME)
+        if(defaultBroadcastReceiverClassName == null) {
+            defaultBroadcastReceiverClassName = DEFAULT_BROADCAST_RECEVIER_CLASSNAME
         }
+        mainIntent.component = ComponentName(reactApplicationContext, defaultBroadcastReceiverClassName)
+        // add all notification data attributes to intent extra params
+        data.entryIterator.forEach {
+            mainIntent.putExtra(it.key, if (it.value == null) null else it.value.toString())
+        }
+        val pendingIntent = PendingIntent.getBroadcast(reactApplicationContext, 0, mainIntent, PendingIntent.FLAG_UPDATE_CURRENT)
 
         // prepare base notification builder
         val builder = NotificationCompat.Builder(reactApplicationContext, channelId)
@@ -181,7 +191,7 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
             if(!data.isNull("url")) {
                 if(!data.getString("url")!!.isEmpty()) {
                     val openUrlIntent = Intent(PushNotificationBroadcastReceiver.Actions.OPEN_URL)
-                    openUrlIntent.component = ComponentName(reactApplicationContext, BROADCAST_RECEVIER_CLASSNAME)
+                    openUrlIntent.component = ComponentName(reactApplicationContext, defaultBroadcastReceiverClassName)
                     openUrlIntent.putExtra("url", data.getString("url"))
                     val openUrlPendingIntent = PendingIntent.getBroadcast(reactApplicationContext, 0, openUrlIntent, PendingIntent.FLAG_UPDATE_CURRENT)
                     builder.setContentIntent(openUrlPendingIntent)
@@ -189,7 +199,7 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
             }
             // on check button click send CLOSE_NOTIFICATION action to broadcast receiver that closes notification
             val closeNotificationIntent = Intent(PushNotificationBroadcastReceiver.Actions.CLOSE_NOTIFICATION)
-            closeNotificationIntent.component = ComponentName(reactApplicationContext, BROADCAST_RECEVIER_CLASSNAME)
+            closeNotificationIntent.component = ComponentName(reactApplicationContext, defaultBroadcastReceiverClassName)
             closeNotificationIntent.putExtra("id", notificationId)
             val closeNotificationPendingIntent = PendingIntent.getBroadcast(reactApplicationContext, notificationId, closeNotificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
             remoteViews.setOnClickPendingIntent(R.id.buttonCheck, closeNotificationPendingIntent)
