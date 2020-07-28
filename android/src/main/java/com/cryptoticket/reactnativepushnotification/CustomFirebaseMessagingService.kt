@@ -49,7 +49,7 @@ open class CustomFirebaseMessagingService : FirebaseMessagingService() {
         // show notification
         val module = PushNotificationModule(ReactApplicationContext(applicationContext))
         val notificationId = (0..9999999).random()
-        val channelId = applicationContext.packageManager.getApplicationInfo(applicationContext.packageName, PackageManager.GET_META_DATA).metaData.getString(DEFAULT_CHANNEL)
+        val channelId = applicationContext.packageManager.getApplicationInfo(applicationContext.packageName, PackageManager.GET_META_DATA).metaData.getString(DEFAULT_CHANNEL)!!
         // default template is common
         var templateId = PushNotificationModule.Templates.COMMON
         // check if template is for event

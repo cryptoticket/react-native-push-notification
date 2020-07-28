@@ -26,11 +26,11 @@ open class PushNotificationBroadcastReceiver : BroadcastReceiver() {
     /**
      * On broadcast message receive
      */
-    override fun onReceive(context: Context?, intent: Intent?) {
+    override fun onReceive(context: Context, intent: Intent?) {
         // on CLOSE_NOTIFICATION action hide push notification by passed id
         if(intent?.action.equals(Actions.CLOSE_NOTIFICATION)) {
             val id = intent?.getIntExtra("id", 0)
-            NotificationManagerCompat.from(context!!).cancel(id!!)
+            NotificationManagerCompat.from(context).cancel(id!!)
         }
         // on OPEN_URL action open url in browser
         if(intent?.action.equals(Actions.OPEN_URL)) {
@@ -39,7 +39,7 @@ open class PushNotificationBroadcastReceiver : BroadcastReceiver() {
                 setData(Uri.parse(url))
                 setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
-            context!!.startActivity(openUrlIntent)
+            context.startActivity(openUrlIntent)
         }
         // on PRESS_ON_NOTIFICATION action open app or open app via deep link
         if(intent?.action.equals(Actions.PRESS_ON_NOTIFICATION)) {
@@ -50,13 +50,13 @@ open class PushNotificationBroadcastReceiver : BroadcastReceiver() {
     /**
      * Open main activity by default
      */
-    open fun onNotificationPress(context: Context?, intent: Intent?) {
+    open fun onNotificationPress(context: Context, intent: Intent?) {
         val mainIntent = Intent()
         mainIntent.setClassName(
                 context,
-                context?.packageManager?.getApplicationInfo(context?.packageName, PackageManager.GET_META_DATA)?.metaData?.getString(PushNotificationModule.DEFAULT_ACTIVITY)
+                context.packageManager.getApplicationInfo(context.packageName, PackageManager.GET_META_DATA).metaData.getString(PushNotificationModule.DEFAULT_ACTIVITY)!!
         )
         mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        context?.startActivity(mainIntent)
+        context.startActivity(mainIntent)
     }
 }
