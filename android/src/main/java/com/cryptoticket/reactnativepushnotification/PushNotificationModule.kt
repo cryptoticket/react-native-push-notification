@@ -133,9 +133,10 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
      * @param channelId notification channel id
      * @param data notification data attributes, for different templates there are different data attributes
      * @param priority notification priority, used for backward compatibility with android <= 7 (SDK <= 25), android >= 8 uses channels
+     * @param badgeNumber app icon badge number
      */
     @ReactMethod
-    fun show(notificationId: Int, template: Int, channelId: String, data: ReadableMap, priority: Int = NotificationCompat.PRIORITY_DEFAULT) {
+    fun show(notificationId: Int, template: Int, channelId: String, data: ReadableMap, priority: Int = NotificationCompat.PRIORITY_DEFAULT, badgeNumber: Int = 0) {
 
         // prepare pending intent that opens main activity
         val mainIntent = Intent(PushNotificationBroadcastReceiver.Actions.PRESS_ON_NOTIFICATION)
@@ -157,6 +158,7 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
                 .setPriority(priority)
+                .setNumber(badgeNumber)
 
         // template common push notification
         if(template == Templates.COMMON) {

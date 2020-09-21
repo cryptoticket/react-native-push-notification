@@ -138,7 +138,7 @@ const channelImportance = PushNotificationAndroid.CHANNEL_IMPORTANCE_DEFAULT;
 PushNotificationAndroid.createChannel(channelId, channelName, channelDesc, channelImportance);
 ```
 
-### show(notificationId, template, channelId, data, priority = PushNotificationAndroid.PRIORITY_DEFAULT)
+### show(notificationId, template, channelId, data, priority = PushNotificationAndroid.PRIORITY_DEFAULT, badgeNumber = 0)
 
 Shows a push notification. You can use this method locally. This method is also called when remote notification is received.
 
@@ -154,6 +154,7 @@ Shows a push notification. You can use this method locally. This method is also 
 	- PushNotificationAndroid.PRIORITY_DEFAULT
 	- PushNotificationAndroid.PRIORITY_HIGH
 	- PushNotificationAndroid.PRIORITY_MAX
+- **badgeNumber(optional)**: badge number on the app icon
 
 Example (default notification with title and message):
 ```
@@ -166,7 +167,8 @@ const data = {
 	message: "my message"
 };
 const priority = PushNotificationAndroid.PRIORITY_DEFAULT;
-PushNotificationAndroid.show(notificationId, template, channelId, data, priority);
+const badgeNumber = 10;
+PushNotificationAndroid.show(notificationId, template, channelId, data, priority, badgeNumber);
 ```
 
 Example (custom notification template with checkmark button, media image, url that will be opened on notification content click, title and message):
@@ -181,7 +183,8 @@ const data = {
 	url: "https://google.com" // optional (can be null)
 };
 const priority = PushNotificationAndroid.PRIORITY_DEFAULT;
-PushNotificationAndroid.show(notificationId, template, channelId, data, priority);
+const badgeNumber = 10;
+PushNotificationAndroid.show(notificationId, template, channelId, data, priority, badgeNumber);
 ```
 
 ## How to add a custom template to this repository
@@ -231,7 +234,7 @@ override fun getConstants(): MutableMap<String, Any> {
 4. Assign notification data attributes to the xml temlpate in `show()` method in `PushNotificationModule.`:
 ```
 @ReactMethod
-fun show(notificationId: Int, template: Int, channelId: String, data: ReadableMap, priority: Int = NotificationCompat.PRIORITY_DEFAULT) {
+fun show(notificationId: Int, template: Int, channelId: String, data: ReadableMap, priority: Int = NotificationCompat.PRIORITY_DEFAULT, badgeNumber: Int = 0) {
     // ... other templates
     if(template == Templates.WEATHER) {
         val remoteViews = RemoteViews(reactApplicationContext.packageName, R.layout.notification_template_weather)
@@ -267,7 +270,8 @@ const data = {
     temperature: "+24 degrees"
 };
 const priority = PushNotificationAndroid.PRIORITY_DEFAULT;
-PushNotificationAndroid.show(notificationId, template, channelId, data, priority);
+const badgeNumber = 10;
+PushNotificationAndroid.show(notificationId, template, channelId, data, priority, badgeNumber);
 ```
 
 ## How to add deep links support
