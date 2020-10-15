@@ -14,6 +14,7 @@ import com.bumptech.glide.Glide
 import com.facebook.react.bridge.*
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.iid.FirebaseInstanceId
+import java.io.IOException
 
 
 class PushNotificationModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
@@ -115,14 +116,18 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
      */
     @ReactMethod
     fun getDeviceToken(promise: Promise) {
-        FirebaseInstanceId.getInstance().instanceId
-            .addOnCompleteListener(OnCompleteListener { task ->
-                if (!task.isSuccessful) {
-                    promise.reject("E_FIREBASE_DEVICE_TOKEN", "Unable to retrieve device FCM token")
-                }
-                val token = task.result?.token
-                promise.resolve(token)
-            })
+        try {
+            FirebaseInstanceId.getInstance().instanceId
+                .addOnCompleteListener(OnCompleteListener { task ->
+                    if (!task.isSuccessful) {
+                        promise.reject("E_FIREBASE_DEVICE_TOKEN", "Unable to retrieve device FCM token")
+                    }
+                    val token = task.result?.token
+                    promise.resolve(token)
+                })
+        } catch (err: IOException) {
+            promise.reject("E_FIREBASE_DEVICE_TOKEN", "Firebase instance is not available");
+        }
     }
 
     /**
