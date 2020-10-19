@@ -170,6 +170,7 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
             builder.apply {
                 setContentTitle(data.getString("title"))
                 setContentText(data.getString("message"))
+                setStyle(NotificationCompat.BigTextStyle().bigText(data.getString("message")))
             }
         }
 
