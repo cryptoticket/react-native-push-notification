@@ -5,8 +5,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.util.Log
 import androidx.core.app.NotificationManagerCompat
+import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.WritableNativeMap
+
 
 /**
  * Push notification broadcast receiver.
@@ -21,6 +23,7 @@ open class PushNotificationBroadcastReceiver : BroadcastReceiver() {
         val CLOSE_NOTIFICATION = "com.cryptoticket.reactnativepushnotification.action.CLOSE_NOTIFICATION"
         val OPEN_URL = "com.cryptoticket.reactnativepushnotification.action.OPEN_URL"
         val PRESS_ON_NOTIFICATION = "com.cryptoticket.reactnativepushnotification.action.PRESS_ON_NOTIFICATION"
+        val SHOW_SCHEDULED_NOTIFICATION = "com.cryptoticket.reactnativepushnotification.action.SHOW_SCHEDULED_NOTIFICATION"
     }
 
     /**
@@ -45,6 +48,21 @@ open class PushNotificationBroadcastReceiver : BroadcastReceiver() {
         if(intent?.action.equals(Actions.PRESS_ON_NOTIFICATION)) {
             onNotificationPress(context, intent)
         }
+        // on SHOW_SCHEDULED_NOTIFICATION action show scheduled notification
+        if(intent?.action.equals(Actions.SHOW_SCHEDULED_NOTIFICATION)) {
+            val module = PushNotificationModule(ReactApplicationContext(context))
+            val notificationId = (0..9999999).random()
+            val channelId = context.packageManager.getApplicationInfo(context.packageName, PackageManager.GET_META_DATA).metaData.getString(CustomFirebaseMessagingService.DEFAULT_CHANNEL)!!
+            var templateId = PushNotificationModule.Templates.COMMON
+            val rnMap = WritableNativeMap()
+            val bundle = intent?.extras
+            if (bundle != null) {
+                for (key in bundle.keySet()) {
+                    if (bundle[key] != null) rnMap.putString(key, bundle[key].toString())
+                }
+            }
+            module.show(notificationId, templateId, channelId, rnMap)
+        }
     }
 
     /**
@@ -53,8 +71,8 @@ open class PushNotificationBroadcastReceiver : BroadcastReceiver() {
     open fun onNotificationPress(context: Context, intent: Intent?) {
         val mainIntent = Intent()
         mainIntent.setClassName(
-                context,
-                context.packageManager.getApplicationInfo(context.packageName, PackageManager.GET_META_DATA).metaData.getString(PushNotificationModule.DEFAULT_ACTIVITY)!!
+            context,
+            context.packageManager.getApplicationInfo(context.packageName, PackageManager.GET_META_DATA).metaData.getString(PushNotificationModule.DEFAULT_ACTIVITY)!!
         )
         mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(mainIntent)

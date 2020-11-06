@@ -9,9 +9,11 @@ import com.google.firebase.messaging.RemoteMessage
 
 open class CustomFirebaseMessagingService : FirebaseMessagingService() {
 
-    val CUSTOM_FIREBASE_TAG = "FIREBASE"
-    val DEFAULT_CHANNEL = "com.cryptoticket.reactnativepushnotification.default_channel_id"
-    val NOTIFICATION_DATA_ATTRIBUTES = arrayOf("title", "message", "media", "url")
+    companion object {
+        val CUSTOM_FIREBASE_TAG = "FIREBASE"
+        val DEFAULT_CHANNEL = "com.cryptoticket.reactnativepushnotification.default_channel_id"
+        val NOTIFICATION_DATA_ATTRIBUTES = arrayOf("title", "message", "media", "url")
+    }
 
     /**
      * On remote push notification receive callback. Shows push notification.

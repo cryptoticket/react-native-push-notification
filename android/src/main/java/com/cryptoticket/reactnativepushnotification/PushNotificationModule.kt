@@ -1,5 +1,6 @@
 package com.cryptoticket.reactnativepushnotification
 
+import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -88,6 +89,34 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
     }
 
     /**
+     * Returns default broadcast receiver class name
+     */
+    fun getDefaultBroadcastReceiverClassName(): String {
+        // if target broadcast receiver exists in AndroidManifest.xml then use it, else use default broadcast receiver
+        var defaultBroadcastReceiverClassName = reactApplicationContext.packageManager.getApplicationInfo(reactApplicationContext.packageName, PackageManager.GET_META_DATA).metaData.getString(META_KEY_DEFAULT_BROADCAST_RECEVIER_CLASSNAME)
+        if(defaultBroadcastReceiverClassName == null) {
+            defaultBroadcastReceiverClassName = DEFAULT_BROADCAST_RECEVIER_CLASSNAME
+        }
+        return defaultBroadcastReceiverClassName
+    }
+
+    /**
+     * Cancels scheduled notification by its id
+     *
+     * @param notificationId scheduled notification id to be cancelled
+     */
+    @ReactMethod
+    fun cancelScheduledNotification(notificationId: Int) {
+        // recreate pending intent
+        val mainIntent = Intent(PushNotificationBroadcastReceiver.Actions.SHOW_SCHEDULED_NOTIFICATION)
+        mainIntent.component = ComponentName(reactApplicationContext, getDefaultBroadcastReceiverClassName())
+        val pendingIntent = PendingIntent.getBroadcast(reactApplicationContext, notificationId, mainIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+        // cancel notification via alarm manager
+        val alarmManager = reactApplicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        alarmManager.cancel(pendingIntent)
+    }
+
+    /**
      * Creates notification channel.
      * Notification channels are required from android 8 (SDK 26).
      * This methods can be called multiple times, channels are not recreated.
@@ -139,23 +168,23 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
      * @param data notification data attributes, for different templates there are different data attributes
      * @param priority notification priority, used for backward compatibility with android <= 7 (SDK <= 25), android >= 8 uses channels
      * @param badgeNumber app icon badge number
+     * @param showAt unix timestamp when push notification should be shown, can be used for scheduled notifications, if showAt == 0 then show right now
      */
     @ReactMethod
-    fun show(notificationId: Int, template: Int, channelId: String, data: ReadableMap, priority: Int = NotificationCompat.PRIORITY_DEFAULT, badgeNumber: Int = 0) {
+    fun show(notificationId: Int, template: Int, channelId: String, data: ReadableMap, priority: Int = NotificationCompat.PRIORITY_DEFAULT, badgeNumber: Int = 0, showAt: Int = 0) {
+
+        var mainIntentAction = PushNotificationBroadcastReceiver.Actions.PRESS_ON_NOTIFICATION
+        // if delaySeconds > 0 then notification is scheduled
+        if (showAt > 0) mainIntentAction = PushNotificationBroadcastReceiver.Actions.SHOW_SCHEDULED_NOTIFICATION
 
         // prepare pending intent that opens main activity
-        val mainIntent = Intent(PushNotificationBroadcastReceiver.Actions.PRESS_ON_NOTIFICATION)
-        // if target broadcast receiver exists in AndroidManifest.xml then use it, else use default broadcast receiver
-        var defaultBroadcastReceiverClassName = reactApplicationContext.packageManager.getApplicationInfo(reactApplicationContext.packageName, PackageManager.GET_META_DATA).metaData.getString(META_KEY_DEFAULT_BROADCAST_RECEVIER_CLASSNAME)
-        if(defaultBroadcastReceiverClassName == null) {
-            defaultBroadcastReceiverClassName = DEFAULT_BROADCAST_RECEVIER_CLASSNAME
-        }
-        mainIntent.component = ComponentName(reactApplicationContext, defaultBroadcastReceiverClassName)
+        val mainIntent = Intent(mainIntentAction)
+        mainIntent.component = ComponentName(reactApplicationContext, getDefaultBroadcastReceiverClassName())
         // add all notification data attributes to intent extra params
         data.entryIterator.forEach {
             mainIntent.putExtra(it.key, if (it.value == null) null else it.value.toString())
         }
-        val pendingIntent = PendingIntent.getBroadcast(reactApplicationContext, 0, mainIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+        val pendingIntent = PendingIntent.getBroadcast(reactApplicationContext, notificationId, mainIntent, PendingIntent.FLAG_UPDATE_CURRENT)
 
         // prepare base notification builder
         val builder = NotificationCompat.Builder(reactApplicationContext, channelId)
@@ -199,7 +228,7 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
             if(!data.isNull("url")) {
                 if(!data.getString("url")!!.isEmpty()) {
                     val openUrlIntent = Intent(PushNotificationBroadcastReceiver.Actions.OPEN_URL)
-                    openUrlIntent.component = ComponentName(reactApplicationContext, defaultBroadcastReceiverClassName)
+                    openUrlIntent.component = ComponentName(reactApplicationContext, getDefaultBroadcastReceiverClassName())
                     openUrlIntent.putExtra("url", data.getString("url"))
                     val openUrlPendingIntent = PendingIntent.getBroadcast(reactApplicationContext, 0, openUrlIntent, PendingIntent.FLAG_UPDATE_CURRENT)
                     builder.setContentIntent(openUrlPendingIntent)
@@ -207,7 +236,7 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
             }
             // on check button click send CLOSE_NOTIFICATION action to broadcast receiver that closes notification
             val closeNotificationIntent = Intent(PushNotificationBroadcastReceiver.Actions.CLOSE_NOTIFICATION)
-            closeNotificationIntent.component = ComponentName(reactApplicationContext, defaultBroadcastReceiverClassName)
+            closeNotificationIntent.component = ComponentName(reactApplicationContext, getDefaultBroadcastReceiverClassName())
             closeNotificationIntent.putExtra("id", notificationId)
             val closeNotificationPendingIntent = PendingIntent.getBroadcast(reactApplicationContext, notificationId, closeNotificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
             remoteViews.setOnClickPendingIntent(R.id.buttonCheck, closeNotificationPendingIntent)
@@ -215,8 +244,20 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
             builder.setContent(remoteViews)
         }
 
-        // show notification
-        NotificationManagerCompat.from(reactApplicationContext).notify(notificationId, builder.build())
+        // if show at is 0 then notification is not scheduled, show right now
+        if (showAt == 0) {
+            // show notification
+            NotificationManagerCompat.from(reactApplicationContext).notify(notificationId, builder.build())
+        } else {
+            // if android version < 6 then show notification right now because alarm manager with exact time is not supported there
+            if(Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                NotificationManagerCompat.from(reactApplicationContext).notify(notificationId, builder.build())
+            } else {
+                // schedule notification via alarm manager
+                val alarmManager = reactApplicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, (showAt * 1000).toLong(), pendingIntent)
+            }
+        }
     }
 
 }

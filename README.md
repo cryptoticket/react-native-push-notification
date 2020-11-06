@@ -89,6 +89,7 @@ Manifest explanation:
 	-  CLOSE_NOTIFICATION: closes push notification, notification `id` param should be passed in *Intent extras*.
 	-  OPEN_URL: opens url in browser on notification press, `url` param should be passed in *Intent extras*.
 	-  PRESS_ON_NOTIFICATION: notification press handler, by default opens app's main screen(this behavior can be overridden, check the "How to add deep links support" section).
+	-  SHOW_SCHEDULED_NOTIFICATION: shows scheduled notification, notification params should be passed in intent extras.
 
 4. Create a notification channel for local and remote notifications(the one from *meta-data(com.cryptoticket.reactnativepushnotification.default_channel_id*) on app init (required for android >= 8, SDK >= 26):
 ```
@@ -111,6 +112,19 @@ Example:
 import { PushNotificationAndroid } from '@cryptoticket/react-native-push-notification';
 const token = await PushNotificationAndroid.getDeviceToken();
 console.log(token); // 7rilPUr_OJBvggou...
+```
+
+### cancelScheduledNotification(notificationId)
+
+Cancels scheduled notification by notification id. Scheduled notification can be created if you pass `showAt` param to `show()` method.
+
+- **notificationId**: notification id which should be cancelled
+
+Example:
+```
+import { PushNotificationAndroid } from '@cryptoticket/react-native-push-notification';
+const notificationId = 1;
+PushNotificationAndroid.cancelScheduledNotification(notificationId);
 ```
 
 ### createChannel(channelId, channelName, channelDesc, channelImportance)
@@ -138,7 +152,7 @@ const channelImportance = PushNotificationAndroid.CHANNEL_IMPORTANCE_DEFAULT;
 PushNotificationAndroid.createChannel(channelId, channelName, channelDesc, channelImportance);
 ```
 
-### show(notificationId, template, channelId, data, priority = PushNotificationAndroid.PRIORITY_DEFAULT, badgeNumber = 0)
+### show(notificationId, template, channelId, data, priority = PushNotificationAndroid.PRIORITY_DEFAULT, badgeNumber = 0, showAt = 0)
 
 Shows a push notification. You can use this method locally. This method is also called when remote notification is received.
 
@@ -148,13 +162,14 @@ Shows a push notification. You can use this method locally. This method is also 
 	- PushNotificationAndroid.TEMPLATE_EVENT: push notification with custom template. Consists of: button with checkmark, small media image, url that should be opened on notification content click, title and text. When your app receive a remote notification with `media` or `url` data attributes then PushNotificationAndroid.TEMPLATE_EVENT will be used.
 - **channelId**: channel id. By default you should use the one from android manifest (as remote notifications use the same one).
 - **data**: notification data attributes.
-- **priority(optional)**: notification priority. Android >= 8 (SDK >= 26) uses notification channels to set priority. Android < 8 (SDK < 26) sets priority directly on a notification. So this priority field is for compatibility with Android < 8 (SDK < 26). Available notification priorities:
+- **priority**: notification priority. Android >= 8 (SDK >= 26) uses notification channels to set priority. Android < 8 (SDK < 26) sets priority directly on a notification. So this priority field is for compatibility with Android < 8 (SDK < 26). Available notification priorities:
 	- PushNotificationAndroid.PRIORITY_MIN
 	- PushNotificationAndroid.PRIORITY_LOW
 	- PushNotificationAndroid.PRIORITY_DEFAULT
 	- PushNotificationAndroid.PRIORITY_HIGH
 	- PushNotificationAndroid.PRIORITY_MAX
-- **badgeNumber(optional)**: badge number on the app icon
+- **badgeNumber**: badge number on the app icon
+- **showAt**: unix timestamp when push notification should be shown (can be used for scheduled notifications). If this param is set to 0 then notification is shown immediately. NOTICE: scheduled notifications work only for android >= 6 (SDK >= 23).
 
 Example (default notification with title and message):
 ```
@@ -168,7 +183,8 @@ const data = {
 };
 const priority = PushNotificationAndroid.PRIORITY_DEFAULT;
 const badgeNumber = 10;
-PushNotificationAndroid.show(notificationId, template, channelId, data, priority, badgeNumber);
+const showAt = 0;
+PushNotificationAndroid.show(notificationId, template, channelId, data, priority, badgeNumber, showAt);
 ```
 
 Example (custom notification template with checkmark button, media image, url that will be opened on notification content click, title and message):
@@ -184,7 +200,25 @@ const data = {
 };
 const priority = PushNotificationAndroid.PRIORITY_DEFAULT;
 const badgeNumber = 10;
-PushNotificationAndroid.show(notificationId, template, channelId, data, priority, badgeNumber);
+const showAt = 0;
+PushNotificationAndroid.show(notificationId, template, channelId, data, priority, badgeNumber, showAt);
+```
+
+Example (scheduled notification which should be shown after 60 seconds have passed):
+```
+import { PushNotificationAndroid } from '@cryptoticket/react-native-push-notification';
+import moment from 'moment';
+const notificationId = 1;
+const template = PushNotificationAndroid.TEMPLATE_COMMON;
+const channelId = 'my_channel_id';
+const data = {
+	title: "my title",
+	message: "my message"
+};
+const priority = PushNotificationAndroid.PRIORITY_DEFAULT;
+const badgeNumber = 10;
+const showAt = moment().utc().unix() + 60;
+PushNotificationAndroid.show(notificationId, template, channelId, data, priority, badgeNumber, showAt);
 ```
 
 ## How to add a custom template to this repository
@@ -234,7 +268,7 @@ override fun getConstants(): MutableMap<String, Any> {
 4. Assign notification data attributes to the xml temlpate in `show()` method in `PushNotificationModule.`:
 ```
 @ReactMethod
-fun show(notificationId: Int, template: Int, channelId: String, data: ReadableMap, priority: Int = NotificationCompat.PRIORITY_DEFAULT, badgeNumber: Int = 0) {
+fun show(notificationId: Int, template: Int, channelId: String, data: ReadableMap, priority: Int = NotificationCompat.PRIORITY_DEFAULT, badgeNumber: Int = 0, showAt: Int = 0) {
     // ... other templates
     if(template == Templates.WEATHER) {
         val remoteViews = RemoteViews(reactApplicationContext.packageName, R.layout.notification_template_weather)
@@ -242,9 +276,7 @@ fun show(notificationId: Int, template: Int, channelId: String, data: ReadableMa
         remoteViews.setTextViewText(R.id.textViewTemperature, data.getString("temperature"))
         builder.setContent(remoteViews)
     }
-
-    // show notification
-    NotificationManagerCompat.from(reactApplicationContext).notify(notificationId, builder.build())
+    // ... show notification code
 }
 ```
 
@@ -271,7 +303,8 @@ const data = {
 };
 const priority = PushNotificationAndroid.PRIORITY_DEFAULT;
 const badgeNumber = 10;
-PushNotificationAndroid.show(notificationId, template, channelId, data, priority, badgeNumber);
+const showAt = 0;
+PushNotificationAndroid.show(notificationId, template, channelId, data, priority, badgeNumber, showAt);
 ```
 
 ## How to add deep links support
