@@ -255,7 +255,9 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
             } else {
                 // schedule notification via alarm manager
                 val alarmManager = reactApplicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, (showAt * 1000).toLong(), pendingIntent)
+                // convert showAt to "long" type because int timestamp is overflowed after multiplication by 1000 (RN supports only "int" function param types for numbers)
+                val showAtMilliseconds = showAt.toLong() * 1000
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, showAtMilliseconds, pendingIntent)
             }
         }
     }
