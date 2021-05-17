@@ -14,7 +14,7 @@ import androidx.core.app.NotificationManagerCompat
 import com.bumptech.glide.Glide
 import com.facebook.react.bridge.*
 import com.google.android.gms.tasks.OnCompleteListener
-import com.google.firebase.iid.FirebaseInstanceId
+import com.google.firebase.messaging.FirebaseMessaging
 import java.io.IOException
 
 
@@ -146,12 +146,12 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
     @ReactMethod
     fun getDeviceToken(promise: Promise) {
         try {
-            FirebaseInstanceId.getInstance().instanceId
+            FirebaseMessaging.getInstance().token
                 .addOnCompleteListener(OnCompleteListener { task ->
                     if (!task.isSuccessful) {
                         promise.reject("E_FIREBASE_DEVICE_TOKEN", "Unable to retrieve device FCM token")
                     }
-                    val token = task.result?.token
+                    val token = task.result
                     promise.resolve(token)
                 })
         } catch (err: IOException) {
