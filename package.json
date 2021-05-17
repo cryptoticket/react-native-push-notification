@@ -1,6 +1,6 @@
 {
   "name": "@cryptoticket/react-native-push-notification",
-  "version": "1.4.1`",
+  "version": "1.4.1",
   "description": "React native package that manages push notifications",
   "main": "index.js",
   "scripts": {
