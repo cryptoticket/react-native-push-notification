@@ -148,11 +148,12 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
         try {
             FirebaseMessaging.getInstance().token
                 .addOnCompleteListener(OnCompleteListener { task ->
-                    if (!task.isSuccessful) {
+                    if (task.isSuccessful) {
+                        val token = task.result
+                        promise.resolve(token)
+                    } else {
                         promise.reject("E_FIREBASE_DEVICE_TOKEN", "Unable to retrieve device FCM token")
                     }
-                    val token = task.result
-                    promise.resolve(token)
                 })
         } catch (err: IOException) {
             promise.reject("E_FIREBASE_DEVICE_TOKEN", "Firebase instance is not available");
