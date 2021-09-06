@@ -110,7 +110,7 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
         // recreate pending intent
         val mainIntent = Intent(PushNotificationBroadcastReceiver.Actions.SHOW_SCHEDULED_NOTIFICATION)
         mainIntent.component = ComponentName(reactApplicationContext, getDefaultBroadcastReceiverClassName())
-        val pendingIntent = PendingIntent.getBroadcast(reactApplicationContext, notificationId, mainIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+        val pendingIntent = PendingIntent.getBroadcast(reactApplicationContext, notificationId, mainIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         // cancel notification via alarm manager
         val alarmManager = reactApplicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         alarmManager.cancel(pendingIntent)
@@ -185,7 +185,7 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
         data.entryIterator.forEach {
             mainIntent.putExtra(it.key, if (it.value == null) null else it.value.toString())
         }
-        val pendingIntent = PendingIntent.getBroadcast(reactApplicationContext, notificationId, mainIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+        val pendingIntent = PendingIntent.getBroadcast(reactApplicationContext, notificationId, mainIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
         // prepare base notification builder
         val builder = NotificationCompat.Builder(reactApplicationContext, channelId)
@@ -231,7 +231,7 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
                     val openUrlIntent = Intent(PushNotificationBroadcastReceiver.Actions.OPEN_URL)
                     openUrlIntent.component = ComponentName(reactApplicationContext, getDefaultBroadcastReceiverClassName())
                     openUrlIntent.putExtra("url", data.getString("url"))
-                    val openUrlPendingIntent = PendingIntent.getBroadcast(reactApplicationContext, 0, openUrlIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+                    val openUrlPendingIntent = PendingIntent.getBroadcast(reactApplicationContext, 0, openUrlIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
                     builder.setContentIntent(openUrlPendingIntent)
                 }
             }
@@ -239,7 +239,7 @@ class PushNotificationModule(reactContext: ReactApplicationContext) : ReactConte
             val closeNotificationIntent = Intent(PushNotificationBroadcastReceiver.Actions.CLOSE_NOTIFICATION)
             closeNotificationIntent.component = ComponentName(reactApplicationContext, getDefaultBroadcastReceiverClassName())
             closeNotificationIntent.putExtra("id", notificationId)
-            val closeNotificationPendingIntent = PendingIntent.getBroadcast(reactApplicationContext, notificationId, closeNotificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+            val closeNotificationPendingIntent = PendingIntent.getBroadcast(reactApplicationContext, notificationId, closeNotificationIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             remoteViews.setOnClickPendingIntent(R.id.buttonCheck, closeNotificationPendingIntent)
             // set notification template
             builder.setContent(remoteViews)
